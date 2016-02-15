@@ -176,6 +176,7 @@
     }
 
     function getWebSocket (url, protocols, ws) {
+        var root = isNode ? global : window;
         var parsedUrl = isNode ? getServerUrlNode(url) : getServerUrlBrowser(url);
 
         if (!parsedUrl) {
@@ -649,7 +650,10 @@
 
         // WAMP SPEC: [HELLO, Realm|uri, Details|dict]
         // Sending directly 'cause it's a hello msg and no sessionId check is needed
-        this._ws.send(this._encode([WAMP_MSG_SPEC.HELLO, this._options.realm, this._wamp_features]));
+        // if there are custom hello details from user, merge that with role announcement
+        var details = this._options.helloDetails ? this._merge(this._wamp_features, this._options.helloDetails) : this._wamp_features;
+
+        this._ws.send(this._encode([WAMP_MSG_SPEC.HELLO, this._options.realm, details]));
     };
 
     Wampy.prototype._wsOnClose = function () {
